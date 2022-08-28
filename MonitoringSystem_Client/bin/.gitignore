@@ -11,3 +11,7 @@
 /constant.class
 /Constant.class
 /SendToServer.class
+/ReceiveFromServer.class
+/Watched.class
+/StadardWatch.class
+/StandardWatch.class

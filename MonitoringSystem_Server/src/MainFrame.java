@@ -25,11 +25,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MainFrame implements ActionListener {
-	private JFrame frame;
+	public static JFrame frame;
 	private JTable table;
+	private JScrollPane spTable;
+	private JScrollPane clientPane;
+	public DefaultTableModel tblModel;
 	
 	public static String addressIP;
 	private String[] columnNames = new String [] {"ID", "Monitoring Directory", "Time", "Action", "Name Client", "Description"};
+	private JTextField txtSearch;
 
 	public MainFrame() {
 		initialTable();
@@ -52,10 +56,10 @@ public class MainFrame implements ActionListener {
 	}
 	
 	private void initialTable() {
-		DefaultTableModel model = new DefaultTableModel(null, columnNames);
+		tblModel = new DefaultTableModel(null, columnNames);
 		Object[] data = new Object[] { 1, "test", "test", "test", "test", "test" };
-		model.addRow(data);
-		table.setModel(model);
+		tblModel.addRow(data);
+		table.setModel(tblModel);
 		table.getColumnModel().getColumn(0).setMaxWidth(50);
 	}
 
@@ -68,14 +72,14 @@ public class MainFrame implements ActionListener {
 		frame.getContentPane().setLayout(null);
 		
 		JLabel lblNewLabel = new JLabel("IP:");
-		lblNewLabel.setBounds(965, 6, 61, 16);
+		lblNewLabel.setBounds(907, 6, 61, 16);
 		frame.getContentPane().add(lblNewLabel);
 		
 		JLabel lblPort = new JLabel("Port:");
-		lblPort.setBounds(965, 34, 61, 16);
+		lblPort.setBounds(907, 34, 61, 16);
 		frame.getContentPane().add(lblPort);
 		
-		JScrollPane spTable = new JScrollPane();
+		spTable = new JScrollPane();
 		spTable.setBounds(225, 164, 832, 603);
 		spTable.setToolTipText("");
 		frame.getContentPane().add(spTable);
@@ -85,19 +89,19 @@ public class MainFrame implements ActionListener {
 		spTable.setColumnHeaderView(table);
 		spTable.setViewportView(table);
 		
-		JButton btnNewButton_1 = new JButton("Load Data");
+		JButton btnNewButton_1 = new JButton("Show Logs");
 		btnNewButton_1.setBounds(927, 118, 130, 34);
 		frame.getContentPane().add(btnNewButton_1);
 		
 		JLabel lblPortValue = new JLabel(String.valueOf(port));
-		lblPortValue.setBounds(1014, 6, 61, 16);
+		lblPortValue.setBounds(964, 6, 61, 16);
 		frame.getContentPane().add(lblPortValue);
 		
 		JLabel lblAddressIP = new JLabel(addressIP);
-		lblAddressIP.setBounds(1014, 34, 61, 16);
+		lblAddressIP.setBounds(964, 34, 61, 16);
 		frame.getContentPane().add(lblAddressIP);
 		
-		JScrollPane clientPane = new JScrollPane();
+		clientPane = new JScrollPane();
 		clientPane.setBounds(6, 164, 207, 603);
 		frame.getContentPane().add(clientPane);
 		
@@ -108,6 +112,19 @@ public class MainFrame implements ActionListener {
 		lblNewLabel_1.setBounds(6, 127, 150, 25);
 		lblNewLabel_1.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
 		frame.getContentPane().add(lblNewLabel_1);
+		
+		txtSearch = new JTextField();
+		txtSearch.setBounds(6, 20, 342, 44);
+		frame.getContentPane().add(txtSearch);
+		txtSearch.setColumns(10);
+		
+		JButton btnSearch = new JButton("Search");
+		btnSearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		btnSearch.setBounds(360, 22, 117, 42);
+		frame.getContentPane().add(btnSearch);
 	}
 
 	@Override

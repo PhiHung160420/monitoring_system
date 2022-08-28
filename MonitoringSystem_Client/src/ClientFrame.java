@@ -85,7 +85,7 @@ public class ClientFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnConnect) {
 			try {
-				handleInfoClent();
+				handleInfoClient();
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -96,7 +96,7 @@ public class ClientFrame implements ActionListener {
 		return port > 0 && port < 10000 && ip.length() != 0 && username.length() != 0;
 	}
 	
-	public void handleInfoClent() {
+	public void handleInfoClient() {
 		int PORT = Integer.parseInt(txtPort.getText());
         String IP = txtIP.getText();
         String USERNAME = txtNameClient.getText();

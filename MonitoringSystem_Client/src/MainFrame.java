@@ -29,11 +29,12 @@ public class MainFrame implements ActionListener {
 	private JFrame frame;
 	private JTextField txtIP;
 	private JTextField txtPort;
-	private JTable table;
+	public static JTable table;
 	private JScrollPane spTable;
 	private JButton btnLoadData;
 	private JButton btnConnect;
 	
+	public static DefaultTableModel tblModel;
 	public static Socket socket = null;
 	public static String clientName = "Client";
 	public static int serverPort;
@@ -66,6 +67,11 @@ public class MainFrame implements ActionListener {
 		init(PORT, IP, USERNAME);
 		initialize(PORT, IP, USERNAME);
 		connectWithServer(PORT, IP, USERNAME);
+		try {
+			new Thread(new WatcherService(socket, Paths.get(Path))).start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void init(int PORT, String IP, String USERNAME) {
@@ -81,7 +87,8 @@ public class MainFrame implements ActionListener {
         } else {
             try {
                 socket = new Socket(IP, PORT);
-
+                new SendToServer(socket, USERNAME, "2", "Connected", Path);
+//                new Thread(new ClientReceive(socket)).start();
             } catch (Exception e2) {
                 JOptionPane.showMessageDialog(frame, "Can not connect to server. Please try again!");
             }
@@ -89,10 +96,10 @@ public class MainFrame implements ActionListener {
 	}
 	
 	private void initialTable() {
-		DefaultTableModel model = new DefaultTableModel(null, columnNames);
+		tblModel = new DefaultTableModel(null, columnNames);
 		Object[] data = new Object[] { 1, "test", "test", "test", "test", "test" };
-		model.addRow(data);
-		table.setModel(model);
+		tblModel.addRow(data);
+		table.setModel(tblModel);
 		table.getColumnModel().getColumn(0).setMaxWidth(50);
 	}
 

@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -9,91 +10,110 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WatcherService {
+public class WatcherService implements Runnable {
 	private final WatchService watcher;
+	private Socket socket;
+	
     private final Map<WatchKey, Path> keys;
     
     private Path path;
     
-    WatcherService(Path path) throws IOException {
+    public WatcherService(Socket socket, Path path) throws IOException {
     	this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<WatchKey, Path>();
     	this.path = path;
+    	this.socket = socket;
     }
     
-    private void registerDirectory(Path dir) throws IOException {
-        WatchKey key = dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE,
-                StandardWatchEventKinds.ENTRY_MODIFY);
-        keys.put(key, dir);
+    public void dispose() throws IOException {
+    	watcher.close();
     }
     
-    private void walkAndRegisterDirectories(final Path start) throws IOException {
-        // register directory and sub-directories
-        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                registerDirectory(dir);
-                return FileVisitResult.CONTINUE;
-            }
-        });
+    private void watcherCreate(Path fileName) throws IOException {
+    	DateFormat dateFormat = new SimpleDateFormat("DD/MM/YYYY HH:mm:ss");
+    	
+        Date date = new Date();
+        
+        int rowCount = MainFrame.tblModel.getRowCount();
+        
+        Object[] obj = new Object[] { rowCount + 1, path, dateFormat.format(date), "Created", MainFrame.clientName, Constant.MESSAGE_CREATE + fileName };
+
+        MainFrame.tblModel.addRow(obj);
+        MainFrame.table.setModel(MainFrame.tblModel);
     }
     
-    private void processEvents() {
-        for (;;) {
- 
-            // wait for key to be signalled
-            WatchKey key;
-            try {
-                key = watcher.take();
-            } catch (InterruptedException x) {
-                return;
-            }
- 
-            Path dir = keys.get(key);
-            if (dir == null) {
-                System.err.println("WatchKey not recognized!!");
-                continue;
-            }
- 
+    private void watcherDelete(Path fileName) throws IOException {
+         DateFormat dateFormat = new SimpleDateFormat("DD/MM/YYYY HH:mm:ss");
+         
+         Date date = new Date();
+
+         int rowCount = MainFrame.tblModel.getRowCount();
+         
+         Object[] obj = new Object[] { rowCount + 1, path, dateFormat.format(date), "Deleted", MainFrame.clientName, Constant.MESSAGE_DELETE + fileName };
+
+         MainFrame.tblModel.addRow(obj);
+         MainFrame.table.setModel(MainFrame.tblModel);
+    }
+    
+    private void watcherModify(Path fileName) throws IOException {
+        DateFormat dateFormat = new SimpleDateFormat("DD/MM/YYYY HH:mm:ss");
+        
+        Date date = new Date();
+        
+        int rowCount = MainFrame.tblModel.getRowCount();
+        
+        Object[] obj = new Object[] {rowCount + 1, path, dateFormat.format(date), "Modified", MainFrame.clientName, Constant.MESSAGE_MODIFY + fileName };
+
+        MainFrame.tblModel.addRow(obj);
+        MainFrame.table.setModel(MainFrame.tblModel);
+   }
+    
+    private void processEvents() throws IOException {
+    	WatchKey key = path.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+    	
+    	for (;;) {
             for (WatchEvent<?> event : key.pollEvents()) {
-                @SuppressWarnings("rawtypes")
                 WatchEvent.Kind kind = event.kind();
  
-                // Context for directory entry event is the file name of entry
-                @SuppressWarnings("unchecked")
-                Path name = ((WatchEvent<Path>) event).context();
-                Path child = dir.resolve(name);
+                Path fileName = ((WatchEvent<Path>) event).context();
  
-                // print out event
-                System.out.format("%s: %s\n", event.kind().name(), child);
- 
-                // if directory is created, and watching recursively, then register it and its
-                // sub-directories
                 if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                    try {
-                        if (Files.isDirectory(child)) {
-                            walkAndRegisterDirectories(child);
-                        }
-                    } catch (IOException x) {
-                        // do something useful
-                    }
+                	watcherCreate(fileName);
+                }
+                
+                if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                	watcherDelete(fileName);
+                }
+                
+                if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                	watcherModify(fileName);
                 }
             }
  
-            // reset key and remove from set if directory no longer accessible
             boolean valid = key.reset();
             if (!valid) {
                 keys.remove(key);
  
-                // all directories are inaccessible
                 if (keys.isEmpty()) {
                     break;
                 }
             }
-        }
+        } 
     }
+
+	@Override
+	public void run() {
+		try {
+			processEvents();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
     
 }

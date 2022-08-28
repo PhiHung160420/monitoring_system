@@ -3,29 +3,42 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 
-public class Server {
+import javax.swing.JOptionPane;
 
-	public static void main(String[] args) throws UnknownHostException {	 
-        final int PORT = 3000;
-        
-        InetAddress addressIP = InetAddress.getLocalHost();
-        
-        try (ServerSocket serverSocket = new ServerSocket(PORT, 0, addressIP)) {
-        	
-            System.out.println("Server is listening on IP Address: " + addressIP.getHostAddress() + " and on port: " + PORT);
- 
-            while (true) {
-                Socket socket = serverSocket.accept();
-                System.out.println("New client connected");
- 
-                new ServerThread(socket).start();
-            }
- 
-        } catch (IOException ex) {
-            System.out.println("Server exception: " + ex.getMessage());
-            ex.printStackTrace();
+public class Server implements Runnable {
+	private int port;
+    public static ArrayList<Socket> clients = null;
+    public static Vector<String> clientName = null;
+    public static ServerSocket serverSocket = null;
+    public static boolean checked = true;
+
+    public Server(int porta) throws IOException {
+        this.port = porta;
+    }
+
+    public void run() {
+        Socket socket = null;
+        clients = new ArrayList<Socket>();
+        clientName = new Vector<String>();
+        try {
+            serverSocket = new ServerSocket(port);
+        } catch (IOException e1) {
+            e1.printStackTrace();
         }
-	}
 
+        while (checked) {
+            try {
+            	socket = serverSocket.accept();
+                clients.add(socket);
+//                new Thread(new ServerReceive(s, listaClient, nameClient, map)).start();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(MainFrame.frame, "Close Server！");
+            }
+        }
+    }
 }

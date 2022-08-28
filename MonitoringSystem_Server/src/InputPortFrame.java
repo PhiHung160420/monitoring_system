@@ -79,20 +79,20 @@ public class InputPortFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnStartServer) {
 			try {
-				handlePort();
+				handleWithPort();
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		}
 	}
 	
-	public void handlePort() {
+	public void handleWithPort() {
 		int port = Integer.parseInt(txtPort.getText());
         if (port > 0 && port < 10000) {
             frame.setVisible(false);
         	new MainFrame(port);
         } else {
-            JOptionPane.showMessageDialog(frame, "Thông tin port không hợp lệ. Vui lòng nhập lại.");
+            JOptionPane.showMessageDialog(frame, "Invalid port. Please try again!");
         }
 	}
 }
