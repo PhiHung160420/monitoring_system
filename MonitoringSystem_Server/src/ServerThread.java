@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class ServerThread extends Thread {
@@ -23,7 +24,8 @@ public class ServerThread extends Thread {
 			 OutputStream output = socket.getOutputStream();
 			 PrintWriter writer = new PrintWriter(output, true);
  
- 
+			 InetSocketAddress socketAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
+			 System.out.println("IP Client: " + socketAddress.getAddress());
 			 String text;
  
 			 do {
