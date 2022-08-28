@@ -4,6 +4,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
@@ -19,14 +20,11 @@ import java.util.Map;
 public class WatcherService implements Runnable {
 	private final WatchService watcher;
 	private Socket socket;
-	
-    private final Map<WatchKey, Path> keys;
     
-    private Path path;
+    private String path;
     
-    public WatcherService(Socket socket, Path path) throws IOException {
+    public WatcherService(Socket socket, String path) throws IOException {
     	this.watcher = FileSystems.getDefault().newWatchService();
-        this.keys = new HashMap<WatchKey, Path>();
     	this.path = path;
     	this.socket = socket;
     }
@@ -46,6 +44,8 @@ public class WatcherService implements Runnable {
 
         MainFrame.tblModel.addRow(obj);
         MainFrame.table.setModel(MainFrame.tblModel);
+        
+        new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
     }
     
     private void watcherDelete(Path fileName) throws IOException {
@@ -59,6 +59,8 @@ public class WatcherService implements Runnable {
 
          MainFrame.tblModel.addRow(obj);
          MainFrame.table.setModel(MainFrame.tblModel);
+         
+         new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
     }
     
     private void watcherModify(Path fileName) throws IOException {
@@ -72,10 +74,12 @@ public class WatcherService implements Runnable {
 
         MainFrame.tblModel.addRow(obj);
         MainFrame.table.setModel(MainFrame.tblModel);
+        
+        new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
    }
     
     private void processEvents() throws IOException {
-    	WatchKey key = path.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+    	WatchKey key = Paths.get(path).register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
     	
     	for (;;) {
             for (WatchEvent<?> event : key.pollEvents()) {
@@ -97,12 +101,9 @@ public class WatcherService implements Runnable {
             }
  
             boolean valid = key.reset();
+            
             if (!valid) {
-                keys.remove(key);
- 
-                if (keys.isEmpty()) {
-                    break;
-                }
+                break;
             }
         } 
     }

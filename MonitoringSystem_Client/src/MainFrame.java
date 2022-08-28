@@ -7,6 +7,9 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.awt.event.WindowEvent;
@@ -43,19 +46,7 @@ public class MainFrame implements ActionListener {
 	
 	private String[] columnNames = new String [] {"ID", "Monitoring Directory", "Time", "Action", "Name Client", "Description"};
 	
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					MainFrame window = new MainFrame();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
+	
 	public MainFrame() {
 		initialTable();
 	}
@@ -65,10 +56,10 @@ public class MainFrame implements ActionListener {
 	 */
 	public MainFrame(int PORT, String IP, String USERNAME) {
 		init(PORT, IP, USERNAME);
+		connectToServer(PORT, IP, USERNAME);
 		initialize(PORT, IP, USERNAME);
-		connectWithServer(PORT, IP, USERNAME);
 		try {
-			new Thread(new WatcherService(socket, Paths.get(Path))).start();
+			new Thread(new WatcherService(socket, Path)).start();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -80,17 +71,19 @@ public class MainFrame implements ActionListener {
          clientName = USERNAME;
 	}
 	
-	public void connectWithServer(int PORT, String IP, String USERNAME) {
+	public void connectToServer(int PORT, String IP, String USERNAME) {
 		Path = Paths.get(".").normalize().toAbsolutePath().toString() + "/";
+		System.out.printf("Path: " + Path);
+		
         if (socket != null && socket.isConnected()) {
-            JOptionPane.showMessageDialog(frame, "Connected!");
+            JOptionPane.showMessageDialog(null, "Connected", "Notification", JOptionPane.DEFAULT_OPTION);
         } else {
             try {
                 socket = new Socket(IP, PORT);
                 new SendToServer(socket, USERNAME, "2", "Connected", Path);
 //                new Thread(new ClientReceive(socket)).start();
             } catch (Exception e2) {
-                JOptionPane.showMessageDialog(frame, "Can not connect to server. Please try again!");
+                JOptionPane.showMessageDialog(null, "Can not connect to server. Please try again!");
             }
         }
 	}
@@ -152,7 +145,19 @@ public class MainFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnConnect) {
 			try {
-				
+				if (socket == null) {
+                    try {
+                    	btnConnect.setText("Disconnect");                 
+                    } catch (Exception e2) {
+                        JOptionPane.showMessageDialog(null, "Can't connect check ip and port");
+                    }
+                } else if (socket != null && socket.isConnected()) {
+                    try {
+                    	btnConnect.setText("Connect");
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+                }
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}

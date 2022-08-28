@@ -25,33 +25,51 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MainFrame implements ActionListener {
-	public static JFrame frame;
 	private JTable table;
 	private JScrollPane spTable;
 	private JScrollPane clientPane;
-	public DefaultTableModel tblModel;
 	
+	public DefaultTableModel tblModel;
+	public static JFrame frame;
+	public static String Path = Constant.MY_PATH;
+	public static JList<String> clients;
 	public static String addressIP;
+	public JButton btnDisconnect, btnSearch;
+	
 	private String[] columnNames = new String [] {"ID", "Monitoring Directory", "Time", "Action", "Name Client", "Description"};
 	private JTextField txtSearch;
+	
+//	private Server server;
 
 	public MainFrame() {
 		initialTable();
+//		server = Server.getInstance();
 	}
 	
 	/**
 	* @wbp.parser.entryPoint
 	*/
 	public MainFrame(int port) {
-		getAddressIP();
+		getConnect(port);
 		initialize(port);
     }
 	
-	public void getAddressIP() {
-		try {
-            addressIP = InetAddress.getLocalHost().getHostAddress();
-        } catch (IOException e1) {
-            JOptionPane.showMessageDialog(frame, "Cannot start server");
+	public void getConnect(int port) {
+		if (Server.serverSocket != null && !Server.serverSocket.isClosed()) {
+            JOptionPane.showMessageDialog(frame, "Server is running!");
+        } else {
+        	 try {
+        		 
+        		 Server.checked = true;
+        		 
+                 addressIP = InetAddress.getLocalHost().getHostAddress();
+                 
+                 new Thread(new Server(port)).start();
+                 
+                 Path = Paths.get(".").normalize().toAbsolutePath().toString();
+             } catch (IOException e1) {
+                 JOptionPane.showMessageDialog(frame, "Can not start server. Please try again!");
+             }
         }
 	}
 	
@@ -65,7 +83,7 @@ public class MainFrame implements ActionListener {
 
 
 	private void initialize(int port) {
-		frame = new JFrame();
+		frame = new JFrame("Monitoring System");
 		frame.setBounds(100, 100, 1087, 821);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
@@ -94,19 +112,19 @@ public class MainFrame implements ActionListener {
 		frame.getContentPane().add(btnNewButton_1);
 		
 		JLabel lblPortValue = new JLabel(String.valueOf(port));
-		lblPortValue.setBounds(964, 6, 61, 16);
+		lblPortValue.setBounds(962, 34, 61, 16);
 		frame.getContentPane().add(lblPortValue);
 		
-		JLabel lblAddressIP = new JLabel(addressIP);
-		lblAddressIP.setBounds(964, 34, 61, 16);
+		JLabel lblAddressIP = new JLabel(String.valueOf(addressIP));
+		lblAddressIP.setBounds(962, 6, 61, 16);
 		frame.getContentPane().add(lblAddressIP);
 		
 		clientPane = new JScrollPane();
 		clientPane.setBounds(6, 164, 207, 603);
 		frame.getContentPane().add(clientPane);
 		
-		JList clientList = new JList();
-		clientPane.setColumnHeaderView(clientList);
+		clients = new JList<String>();
+		clientPane.setColumnHeaderView(clients);
 		
 		JLabel lblNewLabel_1 = new JLabel("Clients");
 		lblNewLabel_1.setBounds(6, 127, 150, 25);
@@ -118,18 +136,38 @@ public class MainFrame implements ActionListener {
 		frame.getContentPane().add(txtSearch);
 		txtSearch.setColumns(10);
 		
-		JButton btnSearch = new JButton("Search");
-		btnSearch.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
+		btnDisconnect = new JButton("Disconnect");
+		btnDisconnect.setBounds(0, 0, 0, 0);
+        frame.getContentPane().add(btnDisconnect);
+		
+        btnSearch = new JButton("Search");
 		btnSearch.setBounds(360, 22, 117, 42);
 		frame.getContentPane().add(btnSearch);
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+	public void actionPerformed(ActionEvent e) {	
+		if (e.getSource() == btnDisconnect) {
+			try {
+				handleDisconnectServer();
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	public void handleDisconnectServer() throws IOException {
+		if (Server.serverSocket == null || Server.serverSocket.isClosed()) {
+            JOptionPane.showMessageDialog(frame, "Server Disconnected!");
+        } else {
+//			    if (Serverhandler.listaClient != null && Serverhandler.listaClient.size() != 0) {
+//                try {
+//                    new ServerSend(Serverhandler.listaClient, "", "5", "");
+//                } catch (IOException e1) {
+//                    e1.printStackTrace();
+//                }
+        	
+        	Server.resetServer();    
+        }
 	}
 }
