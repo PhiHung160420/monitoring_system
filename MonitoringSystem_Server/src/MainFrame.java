@@ -4,8 +4,11 @@ import javax.swing.JFrame;
 import java.awt.FlowLayout;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.JLabel;
@@ -25,25 +28,26 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MainFrame implements ActionListener {
-	private JTable table;
 	private JScrollPane spTable;
 	private JScrollPane clientPane;
 	
-	public DefaultTableModel tblModel;
 	public static JFrame frame;
 	public static String Path = Constant.MY_PATH;
-	public static JList<String> clients;
 	public static String addressIP;
+	
+	public JTable table;
+	public DefaultTableModel tblModel;
+	public JList<String> clients;
+	public Map<String, String> mapPath = new HashMap<String, String>();
+    public Map<String, Socket> map = new HashMap<String, Socket>();;
 	public JButton btnDisconnect, btnSearch;
 	
 	private String[] columnNames = new String [] {"ID", "Monitoring Directory", "Time", "Action", "Name Client", "Description"};
 	private JTextField txtSearch;
 	
-//	private Server server;
 
 	public MainFrame() {
 		initialTable();
-//		server = Server.getInstance();
 	}
 	
 	/**

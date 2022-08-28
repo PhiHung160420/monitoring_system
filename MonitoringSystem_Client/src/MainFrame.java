@@ -37,7 +37,7 @@ public class MainFrame implements ActionListener {
 	private JButton btnLoadData;
 	private JButton btnConnect;
 	
-	public static DefaultTableModel tblModel;
+	public DefaultTableModel tblModel;
 	public static Socket socket = null;
 	public static String clientName = "Client";
 	public static int serverPort;
@@ -80,7 +80,7 @@ public class MainFrame implements ActionListener {
         } else {
             try {
                 socket = new Socket(IP, PORT);
-                new SendToServer(socket, USERNAME, "2", "Connected", Path);
+                new SendToServer(socket, Constant.LOGIN, USERNAME, "Connected", Path);
 //                new Thread(new ClientReceive(socket)).start();
             } catch (Exception e2) {
                 JOptionPane.showMessageDialog(null, "Can not connect to server. Please try again!");
@@ -88,7 +88,7 @@ public class MainFrame implements ActionListener {
         }
 	}
 	
-	private void initialTable() {
+	public void initialTable() {
 		tblModel = new DefaultTableModel(null, columnNames);
 		Object[] data = new Object[] { 1, "test", "test", "test", "test", "test" };
 		tblModel.addRow(data);

@@ -20,13 +20,14 @@ import java.util.Map;
 public class WatcherService implements Runnable {
 	private final WatchService watcher;
 	private Socket socket;
-    
+    private MainFrame mainFrame;
     private String path;
     
     public WatcherService(Socket socket, String path) throws IOException {
     	this.watcher = FileSystems.getDefault().newWatchService();
     	this.path = path;
     	this.socket = socket;
+    	mainFrame = new MainFrame();
     }
     
     public void dispose() throws IOException {
@@ -38,12 +39,14 @@ public class WatcherService implements Runnable {
     	
         Date date = new Date();
         
-        int rowCount = MainFrame.tblModel.getRowCount();
+        int rowCount = mainFrame.tblModel.getRowCount();
         
         Object[] obj = new Object[] { rowCount + 1, path, dateFormat.format(date), "Created", MainFrame.clientName, Constant.MESSAGE_CREATE + fileName };
+        
+        System.out.printf("obj: ", obj);
 
-        MainFrame.tblModel.addRow(obj);
-        MainFrame.table.setModel(MainFrame.tblModel);
+        mainFrame.tblModel.addRow(obj);
+        MainFrame.table.setModel(mainFrame.tblModel);
         
         new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
     }
@@ -53,12 +56,12 @@ public class WatcherService implements Runnable {
          
          Date date = new Date();
 
-         int rowCount = MainFrame.tblModel.getRowCount();
+         int rowCount = mainFrame.tblModel.getRowCount();
          
          Object[] obj = new Object[] { rowCount + 1, path, dateFormat.format(date), "Deleted", MainFrame.clientName, Constant.MESSAGE_DELETE + fileName };
 
-         MainFrame.tblModel.addRow(obj);
-         MainFrame.table.setModel(MainFrame.tblModel);
+         mainFrame.tblModel.addRow(obj);
+         MainFrame.table.setModel(mainFrame.tblModel);
          
          new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
     }
@@ -68,12 +71,12 @@ public class WatcherService implements Runnable {
         
         Date date = new Date();
         
-        int rowCount = MainFrame.tblModel.getRowCount();
+        int rowCount = mainFrame.tblModel.getRowCount();
         
         Object[] obj = new Object[] {rowCount + 1, path, dateFormat.format(date), "Modified", MainFrame.clientName, Constant.MESSAGE_MODIFY + fileName };
 
-        MainFrame.tblModel.addRow(obj);
-        MainFrame.table.setModel(MainFrame.tblModel);
+        mainFrame.tblModel.addRow(obj);
+        MainFrame.table.setModel(mainFrame.tblModel);
         
         new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
    }
