@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WatcherService implements Runnable {
-	private final WatchService watcher;
+	public static WatchService watcher;
 	private Socket socket;
     private MainFrame mainFrame;
     private String path;
@@ -41,14 +41,12 @@ public class WatcherService implements Runnable {
         
         int rowCount = mainFrame.tblModel.getRowCount();
         
-        Object[] obj = new Object[] { rowCount + 1, path, dateFormat.format(date), "Created", MainFrame.clientName, Constant.MESSAGE_CREATE + fileName };
-        
-        System.out.printf("obj: ", obj);
+        Object[] obj = new Object[] { rowCount + 1, path, dateFormat.format(date), "Created", mainFrame.clientName, Constant.MESSAGE_CREATE + fileName };
 
         mainFrame.tblModel.addRow(obj);
-        MainFrame.table.setModel(mainFrame.tblModel);
+        mainFrame.table.setModel(mainFrame.tblModel);
         
-        new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
+        new SendToServer(socket, mainFrame.clientName, Constant.CREATE,  Constant.MESSAGE_CREATE + fileName, path);
     }
     
     private void watcherDelete(Path fileName) throws IOException {
@@ -58,12 +56,12 @@ public class WatcherService implements Runnable {
 
          int rowCount = mainFrame.tblModel.getRowCount();
          
-         Object[] obj = new Object[] { rowCount + 1, path, dateFormat.format(date), "Deleted", MainFrame.clientName, Constant.MESSAGE_DELETE + fileName };
+         Object[] obj = new Object[] { rowCount + 1, path, dateFormat.format(date), "Deleted", mainFrame.clientName, Constant.MESSAGE_DELETE + fileName };
 
          mainFrame.tblModel.addRow(obj);
-         MainFrame.table.setModel(mainFrame.tblModel);
+         mainFrame.table.setModel(mainFrame.tblModel);
          
-         new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
+         new SendToServer(socket, mainFrame.clientName, Constant.DELETE,  Constant.MESSAGE_CREATE + fileName, path);
     }
     
     private void watcherModify(Path fileName) throws IOException {
@@ -73,12 +71,12 @@ public class WatcherService implements Runnable {
         
         int rowCount = mainFrame.tblModel.getRowCount();
         
-        Object[] obj = new Object[] {rowCount + 1, path, dateFormat.format(date), "Modified", MainFrame.clientName, Constant.MESSAGE_MODIFY + fileName };
+        Object[] obj = new Object[] {rowCount + 1, path, dateFormat.format(date), "Modified", mainFrame.clientName, Constant.MESSAGE_MODIFY + fileName };
 
         mainFrame.tblModel.addRow(obj);
-        MainFrame.table.setModel(mainFrame.tblModel);
+        mainFrame.table.setModel(mainFrame.tblModel);
         
-        new SendToServer(socket, MainFrame.clientName, "10",  Constant.MESSAGE_CREATE + fileName, path);
+        new SendToServer(socket, mainFrame.clientName, Constant.MODIFY,  Constant.MESSAGE_CREATE + fileName, path);
    }
     
     private void processEvents() throws IOException {

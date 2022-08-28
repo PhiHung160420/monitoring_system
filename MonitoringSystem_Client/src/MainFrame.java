@@ -4,6 +4,7 @@ import javax.swing.JFrame;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Paths;
@@ -16,7 +17,10 @@ import java.awt.event.WindowEvent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import java.net.Socket;
 
@@ -32,23 +36,23 @@ public class MainFrame implements ActionListener {
 	private JFrame frame;
 	private JTextField txtIP;
 	private JTextField txtPort;
-	public static JTable table;
+	public 	JTable table = new JTable();
 	private JScrollPane spTable;
-	private JButton btnLoadData;
+	private JButton btnLoadData, btnSearch;
 	private JButton btnConnect;
 	
 	public DefaultTableModel tblModel;
 	public static Socket socket = null;
-	public static String clientName = "Client";
+	public String clientName = "Client";
 	public static int serverPort;
 	public static String serverIp;
 	public static String Path = Constant.MY_PATH;
 	
 	private String[] columnNames = new String [] {"ID", "Monitoring Directory", "Time", "Action", "Name Client", "Description"};
+	private JTextField txtSearch;
 	
 	
 	public MainFrame() {
-		initialTable();
 	}
 	
 	/**
@@ -57,6 +61,7 @@ public class MainFrame implements ActionListener {
 	public MainFrame(int PORT, String IP, String USERNAME) {
 		init(PORT, IP, USERNAME);
 		connectToServer(PORT, IP, USERNAME);
+		initialTable();
 		initialize(PORT, IP, USERNAME);
 		try {
 			new Thread(new WatcherService(socket, Path)).start();
@@ -128,7 +133,7 @@ public class MainFrame implements ActionListener {
 		
 		spTable = new JScrollPane();
 		spTable.setToolTipText("");
-		spTable.setBounds(26, 164, 1031, 603);
+		spTable.setBounds(26, 182, 1031, 585);
 		frame.getContentPane().add(spTable);
 		
 		table = new JTable();
@@ -137,8 +142,19 @@ public class MainFrame implements ActionListener {
 		spTable.setViewportView(table);
 		
 		btnLoadData = new JButton("Load Data");
-		btnLoadData.setBounds(927, 118, 130, 34);
+		btnLoadData.setBounds(927, 136, 130, 34);
 		frame.getContentPane().add(btnLoadData);
+		
+		txtSearch = new JTextField();
+		txtSearch.setBounds(26, 136, 250, 34);
+		frame.getContentPane().add(txtSearch);
+		txtSearch.setColumns(10);
+		
+		btnSearch = new JButton("Search");
+		btnSearch.setBounds(288, 138, 117, 32);
+		frame.getContentPane().add(btnSearch);
+		
+		handleEvent();
 	}
 	
 	@Override
@@ -147,7 +163,24 @@ public class MainFrame implements ActionListener {
 			try {
 				if (socket == null) {
                     try {
-                    	btnConnect.setText("Disconnect");                 
+                    	btnConnect.setText("Disconnect"); 
+                    	serverIp = txtIP.getText();
+                        serverPort = Integer.parseInt(txtPort.getText());
+                        socket = new Socket(serverIp, serverPort);
+                        btnConnect.setText("Disconnect"); 
+
+                        new SendToServer(socket, clientName, Constant.LOGIN, "Connected", Path);
+                        new Thread(new ReceiveFromServer(socket)).start();
+                        new Thread(new WatcherService(socket, Path)).start();
+
+                        DateFormat dateFormat = new SimpleDateFormat("DD/MM/YYYY HH:mm:ss");
+                        Date date = new Date();
+
+                        Object[] obj = new Object[] { tblModel.getRowCount() + 1, Path, dateFormat.format(date), "Connected", clientName, clientName + " connected to server!" };
+                        
+                        tblModel.addRow(obj);
+                        table.setModel(tblModel);
+                    	                
                     } catch (Exception e2) {
                         JOptionPane.showMessageDialog(null, "Can't connect check ip and port");
                     }
@@ -161,6 +194,45 @@ public class MainFrame implements ActionListener {
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
-		}
+		} else if (socket != null && socket.isConnected()) {
+            try {
+                new SendToServer(socket, clientName, Constant.DISCONNECT, "Disconnected", Path);
+                
+                btnConnect.setText("Connect");
+                
+                WatcherService.watcher.close();
+                
+                socket.close();
+                
+                socket = null;
+                
+                DateFormat dateFormat = new SimpleDateFormat("DD/MM/YYYY HH:mm:ss");
+                
+                Date date = new Date();
+
+                Object[] obj = new Object[] { tblModel.getRowCount() + 1, Path, dateFormat.format(date), "Disconnected", clientName,clientName + " disconnected to server!" };
+
+                tblModel.addRow(obj);
+                table.setModel(tblModel);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+	}
+	
+	public void handleEvent() {
+		frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                if (socket != null && socket.isConnected()) {
+                    try {
+                        new SendToServer(socket, clientName, Constant.DISCONNECT, "Disconnected", Path);
+                        WatcherService.watcher.close();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+                System.exit(0);
+            }
+        });
 	}
 }

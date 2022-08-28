@@ -2,9 +2,11 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import java.awt.FlowLayout;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +19,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JTable;
 import java.awt.Color;
 import javax.swing.JPanel;
@@ -26,6 +29,8 @@ import javax.swing.JList;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class MainFrame implements ActionListener {
 	private JScrollPane spTable;
@@ -35,7 +40,7 @@ public class MainFrame implements ActionListener {
 	public static String Path = Constant.MY_PATH;
 	public static String addressIP;
 	
-	public JTable table;
+	public JTable table = new JTable();
 	public DefaultTableModel tblModel;
 	public JList<String> clients;
 	public Map<String, String> mapPath = new HashMap<String, String>();
@@ -46,9 +51,7 @@ public class MainFrame implements ActionListener {
 	private JTextField txtSearch;
 	
 
-	public MainFrame() {
-		initialTable();
-	}
+	public MainFrame() {}
 	
 	/**
 	* @wbp.parser.entryPoint
@@ -56,6 +59,7 @@ public class MainFrame implements ActionListener {
 	public MainFrame(int port) {
 		getConnect(port);
 		initialize(port);
+		initialTable();
     }
 	
 	public void getConnect(int port) {
@@ -79,8 +83,6 @@ public class MainFrame implements ActionListener {
 	
 	private void initialTable() {
 		tblModel = new DefaultTableModel(null, columnNames);
-		Object[] data = new Object[] { 1, "test", "test", "test", "test", "test" };
-		tblModel.addRow(data);
 		table.setModel(tblModel);
 		table.getColumnModel().getColumn(0).setMaxWidth(50);
 	}
@@ -164,14 +166,30 @@ public class MainFrame implements ActionListener {
 		if (Server.serverSocket == null || Server.serverSocket.isClosed()) {
             JOptionPane.showMessageDialog(frame, "Server Disconnected!");
         } else {
-//			    if (Serverhandler.listaClient != null && Serverhandler.listaClient.size() != 0) {
-//                try {
-//                    new ServerSend(Serverhandler.listaClient, "", "5", "");
-//                } catch (IOException e1) {
-//                    e1.printStackTrace();
-//                }
+			    if (Server.clients != null && Server.clients.size() != 0) {
+                try {
+                	new SendToClient(Server.clients , "Server Not Working", Constant.SERVER_NOT_WORKING, "Server");
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+			    }
         	
         	Server.resetServer();    
         }
 	}
+	
+	public void handleEvent() {
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                if (Server.clients != null && Server.clients.size() != 0) {
+                    try {
+                        new SendToClient(Server.clients , "Server Not Working", Constant.SERVER_NOT_WORKING, "Server");
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+                System.exit(0);
+            }
+        });
+    }
 }

@@ -19,5 +19,11 @@ public class Constant {
 	public static final String LOGIN = "LOGIN";
 	
 	public static final String LOGOUT = "LOGOUT";
+	
+	public static final String DISCONNECT = "DISCONNECT";
+	
+	public static final String RENAME = "RENAME";
+	
+	public static final String SERVER_NOT_WORKING = "SERVER_NOT_WORKING";
 }
 
