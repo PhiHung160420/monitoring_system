@@ -8,10 +8,12 @@ public class Server {
 
 	public static void main(String[] args) throws UnknownHostException {	 
         final int PORT = 3000;
-        InetAddress addr = InetAddress.getLocalHost();
-        try (ServerSocket serverSocket = new ServerSocket(PORT, 0, addr)) {
+        
+        InetAddress addressIP = InetAddress.getLocalHost();
+        
+        try (ServerSocket serverSocket = new ServerSocket(PORT, 0, addressIP)) {
         	
-            System.out.println("Server is listening on IP Address: " + addr.getHostAddress() + " and on port: " + PORT);
+            System.out.println("Server is listening on IP Address: " + addressIP.getHostAddress() + " and on port: " + PORT);
  
             while (true) {
                 Socket socket = serverSocket.accept();

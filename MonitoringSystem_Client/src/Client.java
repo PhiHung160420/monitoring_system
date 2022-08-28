@@ -12,8 +12,10 @@ import java.net.UnknownHostException;
 public class Client {
 	public static void main(String[] args) throws UnknownHostException {
 		final int PORT = 3000;
-		InetAddress addr = InetAddress.getByName("127.0.0.1");
-        try (Socket socket = new Socket(addr, PORT)) {
+		
+		InetAddress addressIP = InetAddress.getByName("127.0.0.1");
+		
+        try (Socket socket = new Socket(addressIP, PORT)) {
  
             OutputStream output = socket.getOutputStream();
             PrintWriter writer = new PrintWriter(output, true);
